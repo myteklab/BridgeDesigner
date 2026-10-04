@@ -40,7 +40,7 @@ export class TruckRenderingService {
     this.wheelMesh = this.meshRenderingService.prepareColoredMesh(WHEEL_MESH_DATA);
     this.dualWheelMesh = this.meshRenderingService.prepareColoredMesh(DUAL_WHEEL_MESH_DATA);
     this.cabInteriorMesh = this.meshRenderingService.prepareColoredMesh(TRUCK_CAB_MESH_DATA);
-    this.signMesh = this.meshRenderingService.prepareTexturedMesh(TRUCK_SIGN_MESH_DATA, 'img/ascelogo.png');
+    this.signMesh = this.meshRenderingService.prepareTexturedMesh(TRUCK_SIGN_MESH_DATA, 'img/signlogo.png');
   }
 
   public render(matrices: DisplayMatrices, cabOnly: boolean = false): void {

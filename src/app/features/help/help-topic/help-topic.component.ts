@@ -71,7 +71,7 @@ export class HelpTopicComponent implements AfterViewInit, OnChanges {
     // Copy topic to scratch window just for printing.
     const printWindow = Utility.assertNotNull(window.open());
     const printDoc = printWindow.document;
-    printDoc.title = 'ASCE Bridge Designer Help';
+    printDoc.title = 'Bridge Designer Help';
 
     // Establish the base URL. Firefox needs a full path.
     const base = printDoc.createElement('base');

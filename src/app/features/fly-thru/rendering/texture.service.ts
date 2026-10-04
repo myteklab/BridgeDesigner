@@ -11,7 +11,7 @@ import { Colors } from '../../../shared/classes/graphics';
 const TEXTURE_INFO = {
   'img/bricktile.png': Colors.GL_CONCRETE,
   'img/water.jpg': Colors.GL_WATER,
-  'img/ascelogo.png': Colors.GL_METAL,
+  'img/signlogo.png': Colors.GL_METAL,
 } as const;
 export type TextureUrl = keyof typeof TEXTURE_INFO;
 type TextureMapUrl = TextureUrl | 'skybox';
