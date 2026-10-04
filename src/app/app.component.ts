@@ -26,6 +26,7 @@ import { ToolbarAComponent } from './features/controls/toolbar-a/toolbar-a.compo
 import { ToolbarBComponent } from './features/controls/toolbar-b/toolbar-b.component';
 import { UnstableBridgeDialogComponent } from './features/testing/unstable-bridge-dialog/unstable-bridge-dialog.component';
 import { WelcomeDialogComponent } from './features/welcome/welcome-dialog/welcome-dialog.component';
+import { EmbedService } from './features/embed/embed.service';
 import { WorkflowManagementService } from './features/controls/management/workflow-management.service';
 import { DrawingsService } from './features/drawings/drawings.service';
 import { Printing3dService } from './features/printing-3d/printing-3d.service';
@@ -85,6 +86,7 @@ export class AppComponent implements AfterViewInit {
 
   constructor(
     private readonly bridgeService: BridgeService,
+    private readonly embedService: EmbedService,
     private readonly eventBrokerService: EventBrokerService,
     private readonly sessionStateService: SessionStateService,
     _drawingsService: DrawingsService, // Instantiate only.
@@ -129,8 +131,15 @@ export class AppComponent implements AfterViewInit {
       }
     } else {
       this.eventBrokerService.uiModeRequest.next({ origin: EventOrigin.APP, data: 'initial' });
-      // The dialog chains to a tip request.
-      this.missingFeatureDisablerDialog.disableAndInformUser();
+      if (this.embedService.isHosted) {
+        this.embedService.deferStartup(
+          () => this.missingFeatureDisablerDialog.disableAndInformUser(),
+          () => this.missingFeatureDisablerDialog.disableFeatures(),
+        );
+      } else {
+        // The dialog chains to a tip request.
+        this.missingFeatureDisablerDialog.disableAndInformUser();
+      }
     }
     // Show a contest welcome splash if parameters are set. This hides other startup dialogs temporarily.
     this.contestWelcomeDialog.splashIfContest();

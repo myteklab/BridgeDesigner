@@ -8,6 +8,7 @@ import {
 } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SAVE_LOAD_PROVIDER_SPEC, SaveLoadService } from '../save-load.service';
 import { EventBrokerService } from '../../../shared/services/event-broker.service';
+import { EmbedService } from '../../embed/embed.service';
 import { SaveMarkService } from '../save-mark.service';
 import { InputDialogComponent } from '../../../shared/components/input-dialog/input-dialog.component';
 
@@ -27,6 +28,7 @@ export class DesignSaverLoaderComponent implements AfterViewInit {
   private readonly defaultLoadFileContinuation: () => void;
 
   constructor(
+    private readonly embedService: EmbedService,
     private readonly eventBrokerService: EventBrokerService,
     @Inject('SaveLoadService') private readonly saveLoadService: SaveLoadService,
     private readonly saveMarkService: SaveMarkService,
@@ -37,6 +39,10 @@ export class DesignSaverLoaderComponent implements AfterViewInit {
   }
 
   private async saveBridgeFileSafely(forceGetFile: boolean): Promise<void> {
+    if (!forceGetFile && this.embedService.savesToHost) {
+      this.embedService.saveToHost();
+      return;
+    }
     await this.saveLoadService.saveBridgeFile(forceGetFile, value => this.fileNameInputDialog.getInput(value));
   }
 
