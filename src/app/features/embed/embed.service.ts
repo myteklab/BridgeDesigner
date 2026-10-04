@@ -24,6 +24,12 @@ export class EmbedService {
   private quietStart: (() => void) | undefined;
   private saveHandler: ((text: string) => unknown) | undefined;
   private changeHandler: ((isUnsaved: boolean) => void) | undefined;
+  /**
+   * Set for a design the host has never stored: one from the setup wizard, a sample or a template. The app counts
+   * those as saved, because there is nothing on disk to lose yet, but the host's copy is still the old one (or none),
+   * so a reload would drop the new bridge with no warning.
+   */
+  private isNeverStored: boolean = false;
 
   constructor(
     private readonly bridgeService: BridgeService,
@@ -50,7 +56,13 @@ export class EmbedService {
     this.welcomeStart = welcomeStart;
     this.quietStart = quietStart;
     this.eventBrokerService.editCommandCompletion.subscribe(() => this.reportChange());
-    this.eventBrokerService.loadBridgeCompletion.subscribe(() => this.reportChange());
+    // Subscribed after the drafting panel's own handler, so the load and its saved-mark reset have both happened.
+    this.eventBrokerService.loadBridgeRequest.subscribe(info => {
+      if (info.data.invalidateSavedMark) {
+        this.isNeverStored = true;
+      }
+      this.reportChange();
+    });
     // Published only now, so the host can't call start() before there is something to start.
     (window as any).bridgeDesigner = this.createApi();
   }
@@ -62,9 +74,8 @@ export class EmbedService {
     // Marked before the host finishes. The host owns retries and failure messages; a stale mark only costs a
     // missing "unsaved" prompt, while marking late would also mark any edits made during the save.
     const text = this.bridgeService.saveSetText;
-    this.saveMarkService.markDesignSaved(this.saveMarkService.savedFileName ?? DEFAULT_SAVE_FILE_NAME);
+    this.markStored();
     this.saveHandler(text);
-    this.reportChange();
   }
 
   private start(text: string | null, name?: string): void {
@@ -98,12 +109,23 @@ export class EmbedService {
     beforeLoad?.();
     this.eventBrokerService.loadBridgeRequest.next({ origin: EventOrigin.SERVICE, data: saveSet });
     this.saveMarkService.markDesignSaved(name ?? DEFAULT_SAVE_FILE_NAME);
+    this.isNeverStored = false;
     this.reportChange();
     return true;
   }
 
+  private get isUnsaved(): boolean {
+    return this.isNeverStored || this.saveMarkService.isDesignUnsaved;
+  }
+
+  private markStored(): void {
+    this.saveMarkService.markDesignSaved(this.saveMarkService.savedFileName ?? DEFAULT_SAVE_FILE_NAME);
+    this.isNeverStored = false;
+    this.reportChange();
+  }
+
   private reportChange(): void {
-    this.changeHandler?.(this.saveMarkService.isDesignUnsaved);
+    this.changeHandler?.(this.isUnsaved);
   }
 
   /** Every entry runs inside the Angular zone so change detection sees what the host did. */
@@ -117,11 +139,8 @@ export class EmbedService {
         this.bridgeService.designConditions === DesignConditionsService.PLACEHOLDER_CONDITIONS
           ? ''
           : this.bridgeService.saveSetText,
-      isUnsaved: (): boolean => this.saveMarkService.isDesignUnsaved,
-      markSaved: () => inZone(() => {
-        this.saveMarkService.markDesignSaved(this.saveMarkService.savedFileName ?? DEFAULT_SAVE_FILE_NAME);
-        this.reportChange();
-      }),
+      isUnsaved: (): boolean => this.isUnsaved,
+      markSaved: () => inZone(() => this.markStored()),
       onSave: (handler: (text: string) => unknown) => {
         this.saveHandler = handler;
       },
