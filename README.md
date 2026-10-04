@@ -3,6 +3,20 @@
 
 # Bridge Designer, Cloud Edition
 
+> **This is a modified copy**, maintained by myteklab since October 2026 so Bridge Designer can run inside a learning
+> platform where students' bridges save to their projects. The original is
+> [gene-ressler/bridge-designer](https://github.com/gene-ressler/bridge-designer); branch `upstream-main` is the commit
+> we started from. Our changes:
+>
+> - `src/app/features/embed/embed.service.ts` (new), with hooks in `app.component.ts` and
+>   `design-saver-loader.component.ts`: when a host page sets `window.bridgeDesignerHost` before boot, the app waits
+>   for the host to open a design, sends Save to the host, and draws gallery previews. Without that flag it behaves
+>   exactly as before.
+> - ASCE branding removed (the name, splash, banner and truck sign), because this copy is not hosted or endorsed by
+>   ASCE. The authors' credits are unchanged.
+>
+> Same license as the original: GNU GPL v3 or later.
+
 This repository contains the Bridge Designer, Cloud Edition sources. It's a single-page Angular client-side application
 with no back end.
 
